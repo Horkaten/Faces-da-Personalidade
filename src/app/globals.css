@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === TEMA PRETO PREMIUM DO CLIENTE === */
+body {
+  background: #000000;
+  color: #ededed;
+  font-family: Arial, Helvetica, sans-serif;
+}
