@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbo: false,   // Garantir que o Turbo está desligado
-  },
+  reactStrictMode: true,
+
   typescript: {
     ignoreBuildErrors: true,
-  }
-}
+  },
+};
 
 module.exports = nextConfig;
