@@ -1,29 +1,36 @@
-// /app/api/results/route.ts (Next.js route handler)
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  // expect body: { type, archetype, score, answers, team_id? }
-  const { type, archetype, score, answers, team_id } = body;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  // pega sessao do servidor (client lib)
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError || !session) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+export async function GET() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const userId = session.user.id;
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json(
+      { error: "Supabase env vars missing" },
+      { status: 500 }
+    );
+  }
 
-  const { error } = await supabase
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const { data, error } = await supabase
     .from("eneagrama_results")
-    .insert({
-      user_id: userId,
-      team_id: team_id || null,
-      type,
-      archetype,
-      score,
-      answers: answers,
-    });
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
 
-  if (error) return NextResponse.json({ error }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  if (error) {
+    return NextResponse.json(
+      { data: null, error: error.message },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ data });
 }
