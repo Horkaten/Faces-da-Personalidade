@@ -33,7 +33,7 @@ export async function GET() {
 }
 
 /* =========================
-   POST — sem IA (stub)
+   POST — sem IA (estável)
 ========================= */
 export async function POST(req: Request) {
   try {
@@ -51,4 +51,16 @@ export async function POST(req: Request) {
       .update({ ai_analysis: analysis })
       .eq("id", body.result_id);
 
-    if (error) throw er
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      ai_analysis: analysis,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "Erro ao salvar resultado" },
+      { status: 500 }
+    );
+  }
+}
