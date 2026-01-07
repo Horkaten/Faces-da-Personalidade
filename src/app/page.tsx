@@ -1,82 +1,77 @@
 import React from 'react';
-// Se você usar Lucide Icons (padrão em muitos projetos Next.js), descomente as linhas abaixo.
-// Se usar FontAwesome, mantenha as tags <i> como estão.
-// import { Target, Zap, Lock, Map, CheckCircle, ChevronRight } from 'lucide-react';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans text-gray-800 selection:bg-amber-300 selection:text-black">
-      
-      {/* --- 1. HEADER (Glassmorphism) --- */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 transition-all duration-300">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          {/* Logo com Gradiente Dourado */}
-          <div className="text-2xl font-bold tracking-wider uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-black font-sans text-gray-200 selection:bg-amber-300 selection:text-black">
+      {/* Importação do FontAwesome para ícones extras se necessário */}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+      {/* --- 1. HEADER (Design Fixo e Elegante) --- */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
+        <div className="container mx-auto px-6 py-5 flex justify-between items-center">
+          <div className="text-xl md:text-3xl font-black tracking-tighter uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent">
             Faces da Personalidade
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-300">
+          <nav className="hidden lg:flex items-center space-x-12">
             {['O Valor do Perfil', 'Corporate', 'O Processo'].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`} className="hover:text-amber-400 transition-colors duration-300 uppercase tracking-widest text-xs">
+              <a 
+                key={item} 
+                href={`#${item.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ /g, '-')}`} 
+                className="text-gray-400 hover:text-amber-400 transition-colors duration-300 uppercase tracking-[0.2em] text-[11px] font-bold"
+              >
                 {item}
               </a>
             ))}
-            <a href="login" className="group relative px-6 py-2 rounded-full bg-gradient-to-r from-amber-300 to-yellow-600 text-black font-bold text-xs tracking-widest uppercase overflow-hidden shadow-[0_0_15px_rgba(245,158,11,0.4)] hover:shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300">
-              <span className="relative z-10">Acesse Agora</span>
-              <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-in-out transform -skew-x-12 origin-left" />
+            <a href="/login" className="px-8 py-3 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300">
+              Acesse Agora
             </a>
           </nav>
         </div>
       </header>
 
-      {/* --- 2. HERO SECTION (Impacto Visual) --- */}
-      <section className="relative pt-40 pb-24 lg:pt-52 lg:pb-32 bg-black overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-neutral-900"></div>
+      {/* --- 2. HERO SECTION (Impacto Máximo com Botões Gigantes) --- */}
+      <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-52 bg-black overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-luminosity"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"></div>
         
-        {/* Efeito de Glow Dourado no fundo */}
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] animate-pulse"></div>
-
         <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center">
           <div className="w-full lg:w-3/5 text-center lg:text-left">
-            <div className="inline-block px-3 py-1 mb-6 border border-amber-500/30 rounded-full bg-amber-500/10 backdrop-blur-sm">
-              <span className="text-amber-400 text-xs font-bold tracking-[0.2em] uppercase">Evolução Profissional & Pessoal</span>
+            <div className="inline-block px-5 py-2 mb-8 border border-amber-500/20 rounded-full bg-amber-500/5 backdrop-blur-md text-amber-400 text-[11px] font-black tracking-[0.3em] uppercase">
+              Evolução de Alta Performance
             </div>
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-white leading-tight mb-6 tracking-tight">
+            <h1 className="text-6xl lg:text-[100px] font-black text-white leading-[0.85] mb-10 tracking-tighter uppercase">
               Transforme <br />
-              <span className="bg-gradient-to-r from-amber-200 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-amber-100 via-yellow-400 to-amber-600 bg-clip-text text-transparent">
                 Autoconhecimento
               </span> <br />
               em Poder.
             </h1>
-            <p className="text-lg lg:text-xl text-gray-400 mb-10 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
-              Acesse a plataforma definitiva de Eneagrama. Descrições claras, práticas e transformadoras para alavancar sua carreira e liderança.
+            <p className="text-xl lg:text-2xl text-gray-400 mb-14 max-w-xl mx-auto lg:mx-0 font-light leading-relaxed">
+              A plataforma definitiva de Eneagrama para quem busca o próximo nível na carreira e liderança consciente.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button className="px-8 py-4 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-bold text-lg shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform duration-300 hover:shadow-amber-500/40">
-                INICIAR AVALIAÇÃO
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
+              <button className="group relative px-14 py-7 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black text-xl tracking-widest uppercase shadow-[0_20px_40px_-15px_rgba(245,158,11,0.5)] hover:shadow-[0_25px_50px_-10px_rgba(245,158,11,0.7)] hover:-translate-y-1.5 active:scale-95 transition-all duration-300 overflow-hidden min-w-[300px]">
+                <span className="relative z-10">Iniciar Avaliação</span>
+                <div className="absolute inset-0 bg-white/30 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out transform -skew-x-12" />
               </button>
-              <button className="px-8 py-4 rounded-lg border border-gray-700 text-white font-semibold hover:bg-white/5 transition-all duration-300">
+              
+              <button className="px-14 py-7 rounded-2xl border-2 border-white/20 text-white font-black text-xl tracking-widest uppercase hover:bg-white/10 hover:border-white/40 transition-all duration-300 backdrop-blur-md min-w-[300px] active:scale-95">
                 Saiba Mais
               </button>
             </div>
           </div>
 
-          {/* Elemento Visual Abstrato (Representando o Mindset) */}
-          <div className="w-full lg:w-2/5 mt-16 lg:mt-0 flex justify-center lg:justify-end">
+          <div className="w-full lg:w-2/5 mt-24 lg:mt-0 flex justify-center lg:justify-end">
             <div className="relative w-80 h-80 lg:w-[500px] lg:h-[500px]">
-               {/* Círculos concêntricos animados simulando o Eneagrama/Alvo */}
-               <div className="absolute inset-0 border border-white/10 rounded-full animate-[spin_10s_linear_infinite]"></div>
-               <div className="absolute inset-8 border border-amber-500/20 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
-               <div className="absolute inset-16 border border-white/5 rounded-full"></div>
-               
-               {/* Imagem Central com máscara */}
-               <div className="absolute inset-10 rounded-full overflow-hidden border-2 border-amber-500/50 shadow-[0_0_50px_rgba(217,119,6,0.3)]">
+               <div className="absolute inset-0 border border-amber-500/10 rounded-full animate-[spin_25s_linear_infinite]"></div>
+               <div className="absolute inset-8 border border-white/5 rounded-full animate-[spin_35s_linear_infinite_reverse]"></div>
+               <div className="absolute inset-10 rounded-full overflow-hidden border-2 border-amber-500/20 shadow-[0_0_100px_rgba(217,119,6,0.2)]">
                   <img 
                     src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=2071&auto=format&fit=crop" 
-                    alt="Business Mindset" 
-                    className="w-full h-full object-cover opacity-80 grayscale hover:grayscale-0 transition-all duration-700"
+                    alt="Premium Mindset" 
+                    className="w-full h-full object-cover grayscale brightness-50 hover:grayscale-0 hover:brightness-100 transition-all duration-1000"
                   />
                </div>
             </div>
@@ -84,80 +79,66 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* --- 3. VALOR ESTRATÉGICO (Clean & Minimal) --- */}
-      <section id="valor-do-perfil" className="py-32 bg-neutral-50 relative">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">O Direcionamento Real para Sua Evolução.</h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-amber-400 to-yellow-600 mx-auto rounded-full"></div>
+      {/* --- 3. VALOR ESTRATÉGICO (FORMA AJUSTADA PERFEITA) --- */}
+      <section id="o-valor-do-perfil" className="py-40 bg-black relative border-y border-white/5">
+        <div className="container mx-auto px-6 text-center">
+          <div className="mb-24">
+            <h2 className="text-4xl lg:text-6xl font-black text-white mb-6 tracking-tighter uppercase">Direcionamento Estratégico</h2>
+            <div className="w-24 h-1.5 bg-gradient-to-r from-amber-400 to-amber-700 mx-auto rounded-full"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
             {[
-              { title: 'Foco e Clareza', desc: 'Trace metas de carreira assertivas.', icon: 'fa-bullseye' },
-              { title: 'Forças Reais', desc: 'Potencialize seu desempenho natural.', icon: 'fa-bolt' },
-              { title: 'Desbloqueio', desc: 'Mapeie limitações que impedem o crescimento.', icon: 'fa-lock-open' },
-              { title: 'Plano Prático', desc: 'Orientações reais, sem misticismo.', icon: 'fa-road' }
+              { title: 'Foco e Clareza', desc: 'Metas assertivas de carreira com precisão absoluta.', path: "M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zm0-3a5 5 0 110-10 5 5 0 010 10zm0-2a3 3 0 100-6 3 3 0 000 6z" },
+              { title: 'Forças Reais', desc: 'Potencialize seu desempenho e talentos naturais.', path: "M13 2L3 14h9l-1 8 10-12h-9l1-8z" },
+              { title: 'Pontos Cegos', desc: 'Identifique limitações ocultas que travam sua evolução.', path: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zm11 5a5 5 0 100-10 5 5 0 000 10zm0-2a3 3 0 110-6 3 3 0 010 6z" },
+              { title: 'Liderança', desc: 'Desenvolva uma gestão influente e resiliente.', path: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
+              { title: 'Alta Performance', desc: 'Alcance resultados consistentes em alto nível.', path: "M13 10V3L4 14h7v7l9-11h-7z" },
+              { title: 'Plano Estratégico', desc: 'Estratégias reais e acionáveis para o dia a dia.', path: "M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z" }
             ].map((item, idx) => (
-              <div key={idx} className="group p-8 bg-white rounded-2xl shadow-sm hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-2 transition-all duration-300 border border-gray-100">
-                <div className="w-14 h-14 rounded-xl bg-amber-50 flex items-center justify-center mb-6 group-hover:bg-amber-500 transition-colors duration-300">
-                  <i className={`fas ${item.icon} text-2xl text-amber-600 group-hover:text-white transition-colors`}></i>
+              <div key={idx} className="group relative p-10 bg-gradient-to-br from-neutral-900/80 to-black border border-white/10 rounded-[32px] hover:border-amber-500/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(245,158,11,0.15)] flex flex-col items-center">
+                <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-neutral-800/50 border border-white/10 rounded-[28px] group-hover:border-amber-500/40 transition-all duration-500"></div>
+                  <svg className="w-14 h-14 z-10 transition-all duration-500 group-hover:scale-110 drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)]" fill="currentColor" viewBox="0 0 24 24">
+                    <defs>
+                      <linearGradient id={`gold-grad-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#fde68a" /><stop offset="50%" stopColor="#f59e0b" /><stop offset="100%" stopColor="#b45309" />
+                      </linearGradient>
+                    </defs>
+                    <path fill={`url(#gold-grad-${idx})`} d={item.path} />
+                  </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-gray-500 leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-black text-white mb-4 uppercase tracking-widest group-hover:text-amber-400 transition-colors">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed font-medium">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- 4. CORPORATE SECTION (Dark & Premium) --- */}
-      <section id="corporate" className="py-32 bg-neutral-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-neutral-800/50 -skew-x-12 translate-x-20"></div>
-        
-        <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16">
-          
+      {/* --- 4. CORPORATE SECTION --- */}
+      <section id="corporate" className="py-40 bg-black">
+        <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-24 text-center lg:text-left">
           <div className="w-full lg:w-1/2">
-            <span className="text-amber-400 font-bold tracking-widest uppercase text-xs mb-2 block">Para Empresas</span>
-            <h3 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Alta Performance <br /> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-600">Corporativa</span>
+            <h3 className="text-5xl lg:text-7xl font-black text-white mb-10 tracking-tighter uppercase leading-[0.9]">
+              Performance <br /> <span className="text-amber-500">Corporativa</span>
             </h3>
-            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-              Não é apenas sobre entender pessoas, é sobre alocar talentos e reter líderes. Utilize o Eneagrama como ferramenta estratégica de gestão.
+            <p className="text-gray-400 text-xl mb-14 font-light leading-relaxed">
+              Utilize o Eneagrama como inteligência estratégica para alocação de talentos e retenção de lideranças.
             </p>
-            
-            <div className="space-y-4 mb-10">
-              {['Visão 360º da Equipe', 'Comunicação Interna Otimizada', 'Retenção de Talentos'].map((feat, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
-                    <i className="fas fa-check text-xs"></i>
-                  </div>
-                  <span className="text-gray-300 font-medium">{feat}</span>
-                </div>
-              ))}
-            </div>
-
-            <a href="#" className="inline-flex items-center text-amber-400 font-bold border-b border-amber-400/30 pb-1 hover:text-white hover:border-white transition-all">
-              Solicitar Demo para RH <i className="fas fa-arrow-right ml-2"></i>
-            </a>
+            <button className="px-12 py-6 rounded-2xl border-2 border-amber-500/50 text-amber-500 font-black text-sm tracking-[0.2em] uppercase hover:bg-amber-500 hover:text-black transition-all duration-500">
+              Solicitar Demo para RH
+            </button>
           </div>
-
-          {/* Card Visual do Processo */}
-          <div className="w-full lg:w-5/12 bg-neutral-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/5 shadow-2xl">
-            <h4 className="text-xl font-semibold mb-8 text-center">O Processo Simplificado</h4>
-            <div className="space-y-8 relative">
-              {/* Linha conectora vertical */}
-              <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-gray-700"></div>
-              
-              {['Cadastro Rápido', 'Questionário Inteligente', 'Relatório Estratégico'].map((step, index) => (
-                <div key={index} className="relative flex items-center gap-6">
-                  <div className="w-10 h-10 rounded-full bg-neutral-900 border-2 border-amber-500 z-10 flex items-center justify-center text-amber-500 font-bold text-sm shadow-[0_0_10px_rgba(245,158,11,0.3)]">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-white">{step}</h5>
-                    <p className="text-xs text-gray-500 mt-1">Etapa {index + 1} de 3</p>
+          <div className="w-full lg:w-5/12 bg-neutral-900/50 p-14 rounded-[50px] border border-white/10 shadow-2xl relative">
+            <h4 className="text-2xl font-black mb-12 uppercase tracking-widest text-white text-center">O Processo</h4>
+            <div className="space-y-12">
+              {['Cadastro', 'Avaliação', 'Relatório'].map((step, index) => (
+                <div key={index} className="flex items-center gap-10 group">
+                  <div className="text-5xl font-black text-white/5 group-hover:text-amber-500/20 transition-colors">{index + 1}</div>
+                  <div className="h-0.5 flex-1 bg-white/5 relative">
+                    <div className="absolute left-0 top-0 h-full w-1/3 bg-amber-500"></div>
+                    <span className="absolute -top-8 left-0 font-bold text-white uppercase text-xs tracking-[0.3em]">{step}</span>
                   </div>
                 </div>
               ))}
@@ -166,23 +147,23 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* --- 5. CTA FINAL --- */}
-      <section className="py-24 bg-black text-center relative overflow-hidden">
+      {/* --- 5. CTA FINAL (GIGANTE) --- */}
+      <section className="py-52 bg-black text-center relative overflow-hidden">
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-black to-black"></div>
          <div className="container mx-auto px-6 relative z-10">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">Pronto para mudar sua trajetória?</h2>
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              Aproxime-se da nossa metodologia e comece sua evolução hoje.
-            </p>
-            <button className="px-10 py-5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-bold text-xl hover:scale-105 transition-transform duration-300 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-              GARANTIR MEU RELATÓRIO
+            <h2 className="text-5xl md:text-[95px] font-black text-white mb-16 tracking-tighter uppercase leading-[0.85]">Pronto para mudar <br/>sua trajetória?</h2>
+            <button className="group relative px-20 py-10 rounded-full bg-white text-black font-black text-2xl lg:text-4xl tracking-tighter hover:bg-amber-400 transition-all duration-500 shadow-[0_0_80px_rgba(255,255,255,0.15)] hover:shadow-amber-500/60 hover:scale-105 active:scale-95">
+              <span className="flex items-center gap-6">
+                GARANTIR MEU RELATÓRIO
+                <i className="fas fa-arrow-right text-xl group-hover:translate-x-4 transition-transform duration-300"></i>
+              </span>
             </button>
+            <p className="mt-12 text-gray-500 font-bold tracking-[0.5em] uppercase text-xs">Excellence in Development</p>
          </div>
       </section>
 
-      {/* Footer simples */}
-      <footer className="bg-neutral-950 py-8 text-center text-gray-600 text-sm border-t border-white/5">
-        <p>&copy; 2025 Faces da Personalidade. Todos os direitos reservados.</p>
+      <footer className="bg-black py-16 text-center text-gray-700 text-[10px] tracking-[0.4em] uppercase border-t border-white/5">
+        <p>&copy; 2026 Faces da Personalidade. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

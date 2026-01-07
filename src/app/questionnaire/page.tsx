@@ -33,6 +33,18 @@ const QUESTIONS: { id: number; text: string; typeIndex: number }[] = [
   { id: 18, text: "Priorizo eficiência e sou altamente competitivo(a) quando necessário.", typeIndex: 3 },
 ];
 
+const SUPERPODERES_POR_TIPO: Record<number, string[]> = {
+  1: ["Disciplina extrema", "Senso moral elevado", "Busca por excelência"],
+  2: ["Empatia estratégica", "Influência emocional", "Conexão humana"],
+  3: ["Execução implacável", "Foco em resultados", "Alta adaptabilidade"],
+  4: ["Criatividade profunda", "Identidade autêntica", "Expressão emocional"],
+  5: ["Pensamento analítico", "Visão sistêmica", "Autossuficiência intelectual"],
+  6: ["Lealdade estratégica", "Gestão de riscos", "Consciência coletiva"],
+  7: ["Otimismo contagiante", "Visão de oportunidades", "Energia criativa"],
+  8: ["Liderança natural", "Proteção do grupo", "Coragem decisiva"],
+  9: ["Mediação de conflitos", "Estabilidade emocional", "Visão integradora"],
+};
+
 const TYPE_ARQUETYPES: { [k: number]: { name: string; archetype: string } } = {
   1: { name: "Tipo 1", archetype: "O Perfeccionista" },
   2: { name: "Tipo 2", archetype: "O Ajudador" },
@@ -201,19 +213,25 @@ export default function QuestionnairePage() {
 
       // Preparar payload completo (team_id = null para INDIVIDUAL)
       const payload = {
-        user_id: userId,
-        team_id: null,
-        answers: answers,
-        score: result.score,
-        type: result.type,
-        archetype: result.archetype,
-        rawscore: result.rawScore,
-        sums: result.sums,
-        counts: result.counts,
-        strengths: result.strengths,
-        weaknesses: result.weaknesses,
-        wings: result.wings,
-      };
+  user_id: userId,
+  team_id: null,
+  answers: answers,
+  score: result.score,
+  type: result.type,
+  archetype: result.archetype,
+  rawscore: result.rawScore,
+  sums: result.sums,
+  counts: result.counts,
+  strengths: result.strengths,
+  weaknesses: result.weaknesses,
+  wings: result.wings,
+
+  // 👇 ADICIONE ISSO
+  superpoderes: SUPERPODERES_POR_TIPO[result.bestType] || [],
+
+  ai_analysis: null,
+};
+
 
       // inserir no Supabase (tabela eneagrama_results)
       const { error } = await supabase.from("eneagrama_results").insert(payload);

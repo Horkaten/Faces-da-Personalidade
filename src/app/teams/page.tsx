@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { Plus, Users, KeyRound, ArrowRight, UserCog } from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus, Users, KeyRound, ArrowRight, UserCog, ShieldCheck, LayoutGrid, ArrowLeft, Trash2, Edit3, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -15,352 +15,261 @@ export default function TeamsPage() {
   const [joinCode, setJoinCode] = useState("");
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  // Estilos de cor
-  const amberGradient = "bg-gradient-to-r from-amber-400 to-yellow-600";
-  const amberAccent = "text-amber-400";
-
   useEffect(() => {
     loadTeams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadTeams() {
     setLoading(true);
     setAlertMessage(null);
-
     try {
-      // Sessão
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        router.push("/login");
-        return;
-      }
+      if (!sessionData?.session) { router.push("/login"); return; }
       const userId = sessionData.session.user.id;
-      console.log("[loadTeams] session user:", userId);
 
-      // ==========================
-      // EQUIPES ONDE SOU GESTOR
-      // ==========================
-      const { data: teamsAsManager, error: mgrErr } = await supabase
-        .from("teams")
-        .select("*")
-        .eq("owner_id", userId);
-
-      if (mgrErr) {
-        console.warn("[loadTeams] teamsAsManager err:", mgrErr);
-      }
+      const { data: teamsAsManager } = await supabase.from("teams").select("*").eq("owner_id", userId);
       setManagerTeams(teamsAsManager || []);
-      const managerIds = (teamsAsManager || []).map((t: any) => t.id);
 
-      // ==========================
-      // EQUIPES ONDE SOU MEMBRO
-      // ==========================
-      const { data: memberships, error: memErr } = await supabase
-        .from("team_members")
-        .select("role, team_id")
-        .eq("user_id", userId);
-
-      if (memErr) {
-        console.warn("[loadTeams] memberships err:", memErr);
-      }
-
+      const { data: memberships } = await supabase.from("team_members").select("role, team_id").eq("user_id", userId);
       const teamIds = memberships?.map((m: any) => m.team_id) || [];
-      console.log("[loadTeams] member teamIds:", teamIds);
 
-      let memberTeamsData: any[] = [];
       if (teamIds.length > 0) {
-        const { data: teamsData, error: teamsErr } = await supabase
-          .from("teams")
-          .select("*")
-          .in("id", teamIds);
-
-        if (teamsErr) {
-          console.warn("[loadTeams] teamsData err:", teamsErr);
-        }
-        memberTeamsData = teamsData || [];
+        const { data: teamsData } = await supabase.from("teams").select("*").in("id", teamIds);
+        const managerIds = (teamsAsManager || []).map((t: any) => t.id);
+        const finalFormatted = (teamsData || [])
+          .map((team) => {
+            const member = memberships!.find((m) => m.team_id === team.id);
+            return { ...team, role: member?.role || "member" };
+          })
+          .filter((team) => !managerIds.includes(team.id));
+        setMemberTeams(finalFormatted);
       }
-
-      // Combinar role do membership com dados do team (e remover duplicatas onde o usuário já é owner)
-      const finalFormatted = memberTeamsData
-        .map((team) => {
-          const member = memberships!.find((m) => m.team_id === team.id);
-          return {
-            ...team,
-            role: member?.role || "member",
-          };
-        })
-        // NÃO remover por owner_id diretamente; em vez disso, evita duplicar times que já aparecem em managerTeams
-        .filter((team) => !managerIds.includes(team.id));
-
-      setMemberTeams(finalFormatted);
     } catch (err) {
-      console.error("[loadTeams] unexpected error", err);
-      setAlertMessage("Erro ao carregar equipes. Veja console para detalhes.");
+      setAlertMessage("Erro ao carregar os dados.");
     } finally {
       setLoading(false);
     }
   }
 
-  // ==========================
-  // ENTRAR EM UMA NOVA EQUIPE
-  // ==========================
+  // --- FUNÇÕES DE GESTÃO ---
+
+  const handleRenameTeam = async (e: React.MouseEvent, team: any) => {
+    e.stopPropagation();
+    const newName = prompt("Digite o novo nome da unidade:", team.name);
+    if (!newName || newName === team.name) return;
+
+    const { error } = await supabase.from("teams").update({ name: newName }).eq("id", team.id);
+    if (error) alert("Erro: " + error.message);
+    else loadTeams();
+  };
+
+  const handleDeleteTeam = async (e: React.MouseEvent, team: any) => {
+    e.stopPropagation();
+    const confirmCode = prompt(`ALERTA CRÍTICO: Digite o código [ ${team.code} ] para confirmar a destruição desta unidade:`);
+    if (confirmCode !== team.code) return alert("Código incorreto. Operação cancelada.");
+
+    const { error } = await supabase.from("teams").delete().eq("id", team.id);
+    if (error) alert("Erro: " + error.message);
+    else loadTeams();
+  };
+
   async function handleJoinTeam() {
-    if (!joinCode.trim()) {
-      setAlertMessage("Por favor, insira um código de equipe.");
-      return;
-    }
-
-    setAlertMessage(null);
+    if (!joinCode.trim()) return;
     setLoading(true);
-
     try {
-      // 1. Buscar equipe pelo código
-      const { data: team, error: teamError } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("code", joinCode.trim())
-        .maybeSingle();
+      const { data: team } = await supabase.from("teams").select("id").eq("code", joinCode.trim().toUpperCase()).maybeSingle();
+      if (!team) { setAlertMessage("Código inválido."); return; }
 
-      if (teamError) {
-        console.error("[handleJoinTeam] teamError", teamError);
-        setAlertMessage("Erro ao procurar equipe. Tente novamente.");
-        return;
-      }
-
-      if (!team) {
-        setAlertMessage("Código de equipe inválido ou equipe não encontrada.");
-        return;
-      }
-
-      // 2. Ver sessão
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        setAlertMessage("Faça login antes de entrar na equipe.");
-        return;
+      const userId = sessionData?.session?.user.id;
+
+      const { error } = await supabase.from("team_members").upsert({
+        team_id: team.id,
+        user_id: userId,
+        role: "member",
+        joined_at: new Date().toISOString(),
+      });
+
+      if (!error) {
+        setJoinCode("");
+        setAlertMessage("Sucesso! Você entrou na equipe.");
+        loadTeams();
+      } else {
+        setAlertMessage("Você já faz parte desta unidade.");
       }
-      const userId = sessionData.session.user.id;
-
-      // 3. Checar se já é membro (evita erro RLS/sequelas)
-      const { data: existingMember, error: existingErr } = await supabase
-        .from("team_members")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("team_id", team.id)
-        .maybeSingle();
-
-      if (existingErr) {
-        console.warn("[handleJoinTeam] existingMember check err", existingErr);
-      }
-      if (existingMember) {
-        setAlertMessage("Você já é membro desta equipe.");
-        await loadTeams();
-        return;
-      }
-
-      // 4. Upsert membership (idempotente). Pode falhar por RLS se não estiver autenticado corretamente.
-      const { error: insertError } = await supabase
-        .from("team_members")
-        .upsert({
-          team_id: team.id,
-          user_id: userId,
-          role: "member",
-          joined_at: new Date().toISOString(),
-        }, { onConflict: ["team_id", "user_id"] });
-
-      if (insertError) {
-        const msg = (insertError.message || "").toLowerCase();
-        console.warn("[handleJoinTeam] insertError", insertError);
-        // Se for RLS ou duplicate, ignora porque o trigger ou outra ação pode ter criado a linha
-        if (insertError.code === "23505" || msg.includes("row-level security") || msg.includes("duplicate")) {
-          // ignora
-        } else {
-          setAlertMessage("Erro ao entrar na equipe. Tente novamente.");
-          return;
-        }
-      }
-
-      // 5. Atualizar UI
-      await loadTeams();
-      try { router.refresh(); } catch (e) { /* ok se não suportado */ }
-
-      setJoinCode("");
-      setAlertMessage("Você entrou na equipe com sucesso!");
     } finally {
       setLoading(false);
     }
-  }
-
-  // ROTA CORRIGIDA DE VOLTA PARA O ORIGINAL FUNCIONAL (SEM PREFIXO /dashboard)
-  function handleOpenTeam(teamId: string) {
-    router.push(`/teams/${teamId}`);
   }
 
   return (
-    <div className="min-h-screen p-6 lg:p-12 bg-black text-white font-sans relative">
-      {/* Efeito de Fundo (Similar ao Dashboard) */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[150px] animate-pulse-slow"></div>
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-neutral-800/10 rounded-full blur-[100px] animate-pulse-slow delay-500"></div>
+    <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-amber-500/30 overflow-x-hidden">
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black via-black/95 to-neutral-900"></div>
+        <div className="absolute top-[-5%] right-[-5%] w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[120px]"></div>
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <h1 className="text-4xl font-extrabold mb-4">
-          <span className={amberAccent}>Gestão</span> de Equipes
-        </h1>
-        <p className="text-neutral-500 text-lg mb-10">
-          Visualize, crie e gerencie o desempenho dos grupos com o Eneagrama.
-        </p>
+      <div className="max-w-[1800px] mx-auto px-6 lg:px-12 py-12 relative z-10">
+        <button 
+          onClick={() => router.push("/dashboard")} 
+          className="flex items-center gap-2 text-gray-500 hover:text-amber-500 transition-all mb-8 group uppercase text-[10px] font-black tracking-[0.2em]"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Voltar ao Painel
+        </button>
 
-        {loading && (
-          <div className="p-8 text-center text-neutral-400">
-            <svg className="animate-spin h-5 w-5 mr-3 inline-block text-amber-500" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Carregando equipes...
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
+          <div className="max-w-3xl">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="inline-flex items-center gap-2 px-4 py-1 mb-2 border border-amber-500/30 rounded-full bg-amber-500/10 backdrop-blur-sm text-amber-400 text-[10px] font-bold tracking-[0.2em] uppercase">
+              <LayoutGrid size={12} /> Hub de Inteligência Estratégica
+            </motion.div>
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 leading-[0.9]">
+              Suas <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">Equipes</span>
+            </h1>
+            <p className="text-gray-500 text-xl leading-relaxed max-w-2xl">
+              Gerencie a sinergia entre talentos e maximize a performance coletiva através do mapeamento de personalidade.
+            </p>
           </div>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative flex-1 md:w-80">
+              <input 
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="Código de Acesso"
+                className="w-full bg-neutral-900/50 border border-white/5 rounded-2xl px-6 py-5 text-sm focus:border-amber-500/40 focus:bg-neutral-800/50 outline-none transition-all placeholder:text-neutral-700 text-white font-mono tracking-widest"
+              />
+              <button onClick={handleJoinTeam} className="absolute right-2.5 top-2.5 bottom-2.5 px-6 bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-bold rounded-xl transition-all flex items-center justify-center group shadow-lg shadow-amber-500/10">
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {alertMessage && (
+          <AnimatePresence>
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-10 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium flex items-center justify-between">
+               <div className="flex items-center gap-3"><ShieldCheck size={20} /> {alertMessage}</div>
+               <button onClick={() => setAlertMessage(null)}><XCircle size={18} className="opacity-50 hover:opacity-100" /></button>
+            </motion.div>
+          </AnimatePresence>
         )}
 
-        {!loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-16">
+        {loading ? (
+          <div className="h-64 flex items-center justify-center">
+            <div className="w-10 h-10 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-28">
+            <section>
+              <div className="flex items-center gap-4 mb-12">
+                <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 flex items-center gap-6 w-full">
+                  <span className="whitespace-nowrap">Liderança e Gestão</span>
+                  <div className="h-[1px] w-full bg-white/[0.05]" />
+                </h2>
+              </div>
 
-            {/* ==== 1. SOU GESTOR ==== */}
-            <section className="p-6 bg-neutral-900/50 rounded-2xl border border-amber-500/10 shadow-2xl shadow-black/30">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <UserCog size={24} className={amberAccent} />
-                Minhas Equipes (Gestor)
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                {/* Card: Criar nova equipe */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                 <motion.div
-                  whileHover={{ scale: 1.03, boxShadow: "0 10px 30px rgba(245,158,11,0.2)" }}
+                  whileHover={{ y: -8 }}
                   onClick={() => router.push("/teams/create")}
-                  className="cursor-pointer bg-neutral-900 border border-amber-500/20 rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all duration-300 group aspect-video min-h-[150px]"
+                  className="cursor-pointer group relative h-[280px] rounded-[40px] border border-dashed border-white/[0.1] hover:border-amber-500/40 transition-all flex flex-col items-center justify-center gap-6 overflow-hidden bg-neutral-900/20 backdrop-blur-sm"
                 >
-                  <Plus size={36} className={`${amberAccent} group-hover:scale-110 transition`} />
-                  <p className="mt-4 text-sm font-semibold text-neutral-300">Criar Nova Equipe</p>
-                  <p className="text-xs text-neutral-500">Gerenciar talentos</p>
+                  <div className="w-20 h-20 rounded-3xl bg-neutral-800/50 border border-white/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-amber-500/30 transition-all duration-500">
+                    <Plus size={32} className="text-amber-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/80 font-bold text-base uppercase tracking-widest group-hover:text-white transition-colors">Nova Equipe</p>
+                    <p className="text-gray-600 text-[11px] uppercase mt-2 tracking-widest font-medium">Expandir Organização</p>
+                  </div>
                 </motion.div>
 
-                {/* Minhas equipes como gestor */}
                 {managerTeams.map((team) => (
-                  <motion.div
-                    key={team.id}
-                    whileHover={{ translateY: -3, boxShadow: "0 8px 20px rgba(0,0,0,0.4)" }}
-                    className="bg-neutral-800 border border-white/10 rounded-xl p-6 transition-all duration-200 cursor-pointer"
-                    onClick={() => handleOpenTeam(team.id)}
-                  >
-                    <h3 className="font-bold text-lg mb-2 text-white">{team.name}</h3>
-
-                    <div className="flex items-center justify-between mt-4">
-                        <span className="text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">Gestor</span>
-                        <div className="flex items-center gap-1 text-neutral-400 text-sm">
-                            <KeyRound size={14} />
-                            <span className="font-mono text-xs">{team.code}</span>
-                        </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-
-            {/* ==== 2. SOU MEMBRO ==== */}
-            <section className="p-6 bg-neutral-900/50 rounded-2xl border border-white/10 shadow-2xl shadow-black/30">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Users size={24} className="text-neutral-400" />
-                Equipes Colaborativas
-              </h2>
-
-              {/* Caixa para entrar em equipe */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-neutral-800 border border-white/10 rounded-xl p-6 mb-8 shadow-inner shadow-black/20"
-              >
-                <div className="text-sm font-semibold text-neutral-300 mb-4">Entrar em uma Equipe Existente</div>
-
-                {/* Mensagem de Alerta/Sucesso */}
-                {alertMessage && (
-                  <motion.p
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className={`mb-4 p-3 rounded text-sm ${
-                        alertMessage.includes('sucesso') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-600/30' :
-                        'bg-red-500/10 text-red-400 border border-red-600/30'
-                    }`}
-                  >
-                    {alertMessage}
-                  </motion.p>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <input
-                    className="flex-1 bg-black border border-white/20 rounded-lg px-4 py-3 outline-none text-white focus:border-amber-500/50 transition duration-200 placeholder:text-neutral-500"
-                    placeholder="Insira o código de acesso"
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value)}
+                  <TeamCard 
+                    key={team.id} 
+                    team={team} 
+                    isOwner={true} 
+                    onClick={() => router.push(`/teams/${team.id}`)}
+                    onRename={(e: any) => handleRenameTeam(e, team)}
+                    onDelete={(e: any) => handleDeleteTeam(e, team)}
                   />
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleJoinTeam}
-                    disabled={!joinCode.trim()}
-                    className={`px-8 py-3 ${amberGradient} text-black font-bold rounded-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition disabled:opacity-50 disabled:shadow-none`}
-                  >
-                    <div className="flex items-center gap-2">
-                        Entrar <ArrowRight size={18} />
-                    </div>
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* Minhas equipes como membro */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                {memberTeams.length === 0 && managerTeams.length === 0 ? (
-                    <p className="text-neutral-500 col-span-full italic p-4 bg-neutral-800/50 rounded-xl border border-white/5">
-                        Você ainda não faz parte de nenhuma equipe. Crie uma acima ou entre com um código.
-                    </p>
-                ) : memberTeams.length === 0 && (
-                    <p className="text-neutral-500 col-span-full italic">Você só gerencia equipes, mas ainda não é membro de nenhuma equipe colaborativa.</p>
-                )}
-
-                {memberTeams.map((team) => (
-                  <motion.div
-                    key={team.id}
-                    whileHover={{ translateY: -3, boxShadow: "0 8px 20px rgba(0,0,0,0.4)" }}
-                    className="bg-neutral-800 border border-white/10 rounded-xl p-6 transition-all duration-200 cursor-pointer"
-                    onClick={() => handleOpenTeam(team.id)}
-                  >
-                    <h3 className="font-bold text-lg mb-2 text-white">{team.name}</h3>
-
-                    <div className="flex items-center justify-between mt-4">
-                        <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">Membro</span>
-                        <div className="flex items-center gap-1 text-neutral-400 text-sm">
-                            <Users size={14} />
-                            <span>Você é: {team.role === "manager" ? "Gestor" : "Membro"}</span>
-                        </div>
-                    </div>
-                  </motion.div>
                 ))}
               </div>
             </section>
-          </motion.div>
+
+            <section>
+              <div className="flex items-center gap-4 mb-12">
+                <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 flex items-center gap-6 w-full">
+                  <span className="whitespace-nowrap">Participação Colaborativa</span>
+                  <div className="h-[1px] w-full bg-white/[0.05]" />
+                </h2>
+              </div>
+              {memberTeams.length === 0 ? (
+                <div className="p-20 rounded-[50px] border border-white/[0.03] bg-neutral-900/10 text-center backdrop-blur-sm">
+                  <p className="text-gray-600 font-medium tracking-widest text-sm uppercase">Nenhuma participação colaborativa detectada</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+                  {memberTeams.map((team) => (
+                    <TeamCard key={team.id} team={team} isOwner={false} onClick={() => router.push(`/teams/${team.id}`)} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         )}
       </div>
-
-    {/* Keyframe Styles for Animation */} 
-    <style jsx global>{`
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1); opacity: 0.05; }
-          50% { transform: scale(1.05); opacity: 0.15; }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 8s infinite ease-in-out;
-        }
-      `}</style>
     </div>
+  );
+}
+
+function TeamCard({ team, isOwner, onClick, onRename, onDelete }: any) {
+  return (
+    <motion.div
+      whileHover={{ y: -10 }}
+      onClick={onClick}
+      className="relative group cursor-pointer h-[280px] rounded-[45px] bg-neutral-900/40 backdrop-blur-xl border border-white/5 p-10 flex flex-col justify-between overflow-hidden hover:border-amber-500/30 transition-all duration-500 shadow-2xl"
+    >
+      <div className={`absolute top-0 right-0 w-48 h-48 blur-[100px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 ${isOwner ? 'bg-amber-500' : 'bg-blue-500'}`} />
+      
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-8">
+          <div className={`p-4 rounded-2xl ${isOwner ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-400'} border border-white/[0.03]`}>
+            {isOwner ? <UserCog size={26} /> : <Users size={26} />}
+          </div>
+          
+          {/* CONTROLES ADMINISTRATIVOS */}
+          <div className="flex items-center gap-2">
+            {isOwner && (
+              <div className="flex gap-1 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <button onClick={onRename} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Edit3 size={14} /></button>
+                 <button onClick={onDelete} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500/60 hover:text-red-500 transition-all"><Trash2 size={14} /></button>
+              </div>
+            )}
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/40 border border-white/5">
+              <KeyRound size={14} className="text-neutral-600" />
+              <span className="font-mono text-[11px] font-bold text-neutral-500 uppercase tracking-widest">{team.code}</span>
+            </div>
+          </div>
+        </div>
+        <h3 className="text-3xl font-bold text-white group-hover:text-amber-400 transition-colors leading-tight truncate tracking-tighter">
+          {team.name}
+        </h3>
+      </div>
+
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase font-black tracking-[0.3em] text-neutral-600">Cargo Estratégico</p>
+          <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 rounded-full ${isOwner ? 'bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'bg-blue-500'}`} />
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-[0.2em]">
+              {isOwner ? 'Diretor' : 'Estrategista'}
+            </span>
+          </div>
+        </div>
+        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-4 transition-all duration-500">
+          <ArrowRight size={24} className="text-amber-500" />
+        </div>
+      </div>
+    </motion.div>
   );
 }
