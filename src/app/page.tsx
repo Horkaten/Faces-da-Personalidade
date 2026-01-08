@@ -1,31 +1,50 @@
+"use client";
+
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const LandingPage = () => {
+  const router = useRouter();
+
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black font-sans text-gray-200 selection:bg-amber-300 selection:text-black">
-      {/* Importação do FontAwesome para ícones extras se necessário */}
+      {/* Importação do FontAwesome para ícones extras */}
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
       {/* --- 1. HEADER (Design Fixo e Elegante) --- */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
         <div className="container mx-auto px-6 py-5 flex justify-between items-center">
-          <div className="text-xl md:text-3xl font-black tracking-tighter uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent">
+          <div className="text-xl md:text-3xl font-black tracking-tighter uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 bg-clip-text text-transparent cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             Faces da Personalidade
           </div>
 
           <nav className="hidden lg:flex items-center space-x-12">
-            {['O Valor do Perfil', 'Corporate', 'O Processo'].map((item) => (
+            {[
+              { label: 'O Valor do Perfil', id: 'o-valor-do-perfil' },
+              { label: 'Corporate', id: 'corporate' },
+              { label: 'O Processo', id: 'o-processo' }
+            ].map((item) => (
               <a 
-                key={item} 
-                href={`#${item.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ /g, '-')}`} 
-                className="text-gray-400 hover:text-amber-400 transition-colors duration-300 uppercase tracking-[0.2em] text-[11px] font-bold"
+                key={item.label} 
+                href={`#${item.id}`}
+                onClick={(e) => handleScroll(e, item.id)}
+                className="text-gray-400 hover:text-amber-400 transition-colors duration-300 uppercase tracking-[0.2em] text-[11px] font-bold cursor-pointer"
               >
-                {item}
+                {item.label}
               </a>
             ))}
-            <a href="/login" className="px-8 py-3 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300">
+            <Link href="/login" className="px-8 py-3 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300">
               Acesse Agora
-            </a>
+            </Link>
           </nav>
         </div>
       </header>
@@ -52,14 +71,21 @@ const LandingPage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-              <button className="group relative px-14 py-7 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black text-xl tracking-widest uppercase shadow-[0_20px_40px_-15px_rgba(245,158,11,0.5)] hover:shadow-[0_25px_50px_-10px_rgba(245,158,11,0.7)] hover:-translate-y-1.5 active:scale-95 transition-all duration-300 overflow-hidden min-w-[300px]">
+              <button 
+                onClick={() => router.push('/login')}
+                className="group relative px-14 py-7 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-black font-black text-xl tracking-widest uppercase shadow-[0_20px_40px_-15px_rgba(245,158,11,0.5)] hover:shadow-[0_25px_50px_-10px_rgba(245,158,11,0.7)] hover:-translate-y-1.5 active:scale-95 transition-all duration-300 overflow-hidden min-w-[300px]"
+              >
                 <span className="relative z-10">Iniciar Avaliação</span>
                 <div className="absolute inset-0 bg-white/30 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out transform -skew-x-12" />
               </button>
               
-              <button className="px-14 py-7 rounded-2xl border-2 border-white/20 text-white font-black text-xl tracking-widest uppercase hover:bg-white/10 hover:border-white/40 transition-all duration-300 backdrop-blur-md min-w-[300px] active:scale-95">
+              <a 
+                href="#o-valor-do-perfil"
+                onClick={(e) => handleScroll(e, 'o-valor-do-perfil')}
+                className="px-14 py-7 rounded-2xl border-2 border-white/20 text-white font-black text-xl tracking-widest uppercase hover:bg-white/10 hover:border-white/40 transition-all duration-300 backdrop-blur-md min-w-[300px] active:scale-95 flex items-center justify-center cursor-pointer"
+              >
                 Saiba Mais
-              </button>
+              </a>
             </div>
           </div>
 
@@ -116,7 +142,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* --- 4. CORPORATE SECTION --- */}
+      {/* --- 4. CORPORATE SECTION (O PROCESSO) --- */}
       <section id="corporate" className="py-40 bg-black">
         <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-24 text-center lg:text-left">
           <div className="w-full lg:w-1/2">
@@ -126,11 +152,14 @@ const LandingPage = () => {
             <p className="text-gray-400 text-xl mb-14 font-light leading-relaxed">
               Utilize o Eneagrama como inteligência estratégica para alocação de talentos e retenção de lideranças.
             </p>
-            <button className="px-12 py-6 rounded-2xl border-2 border-amber-500/50 text-amber-500 font-black text-sm tracking-[0.2em] uppercase hover:bg-amber-500 hover:text-black transition-all duration-500">
+            <button 
+              onClick={() => window.open('https://wa.me/SEU_NUMERO', '_blank')}
+              className="px-12 py-6 rounded-2xl border-2 border-amber-500/50 text-amber-500 font-black text-sm tracking-[0.2em] uppercase hover:bg-amber-500 hover:text-black transition-all duration-500"
+            >
               Solicitar Demo para RH
             </button>
           </div>
-          <div className="w-full lg:w-5/12 bg-neutral-900/50 p-14 rounded-[50px] border border-white/10 shadow-2xl relative">
+          <div id="o-processo" className="w-full lg:w-5/12 bg-neutral-900/50 p-14 rounded-[50px] border border-white/10 shadow-2xl relative">
             <h4 className="text-2xl font-black mb-12 uppercase tracking-widest text-white text-center">O Processo</h4>
             <div className="space-y-12">
               {['Cadastro', 'Avaliação', 'Relatório'].map((step, index) => (
@@ -152,7 +181,10 @@ const LandingPage = () => {
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-black to-black"></div>
          <div className="container mx-auto px-6 relative z-10">
             <h2 className="text-5xl md:text-[95px] font-black text-white mb-16 tracking-tighter uppercase leading-[0.85]">Pronto para mudar <br/>sua trajetória?</h2>
-            <button className="group relative px-20 py-10 rounded-full bg-white text-black font-black text-2xl lg:text-4xl tracking-tighter hover:bg-amber-400 transition-all duration-500 shadow-[0_0_80px_rgba(255,255,255,0.15)] hover:shadow-amber-500/60 hover:scale-105 active:scale-95">
+            <button 
+              onClick={() => router.push('/login')}
+              className="group relative px-20 py-10 rounded-full bg-white text-black font-black text-2xl lg:text-4xl tracking-tighter hover:bg-amber-400 transition-all duration-500 shadow-[0_0_80px_rgba(255,255,255,0.15)] hover:shadow-amber-500/60 hover:scale-105 active:scale-95"
+            >
               <span className="flex items-center gap-6">
                 GARANTIR MEU RELATÓRIO
                 <i className="fas fa-arrow-right text-xl group-hover:translate-x-4 transition-transform duration-300"></i>
