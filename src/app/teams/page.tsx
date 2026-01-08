@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { Plus, Users, KeyRound, ArrowRight, UserCog, ShieldCheck, LayoutGrid, ArrowLeft, Trash2, Edit3, XCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Users, KeyRound, ArrowRight, UserCog, ShieldCheck, LayoutGrid, ArrowLeft, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -51,28 +51,6 @@ export default function TeamsPage() {
     }
   }
 
-  // --- FUNÇÕES DE GESTÃO ---
-
-  const handleRenameTeam = async (e: React.MouseEvent, team: any) => {
-    e.stopPropagation();
-    const newName = prompt("Digite o novo nome da unidade:", team.name);
-    if (!newName || newName === team.name) return;
-
-    const { error } = await supabase.from("teams").update({ name: newName }).eq("id", team.id);
-    if (error) alert("Erro: " + error.message);
-    else loadTeams();
-  };
-
-  const handleDeleteTeam = async (e: React.MouseEvent, team: any) => {
-    e.stopPropagation();
-    const confirmCode = prompt(`ALERTA CRÍTICO: Digite o código [ ${team.code} ] para confirmar a destruição desta unidade:`);
-    if (confirmCode !== team.code) return alert("Código incorreto. Operação cancelada.");
-
-    const { error } = await supabase.from("teams").delete().eq("id", team.id);
-    if (error) alert("Erro: " + error.message);
-    else loadTeams();
-  };
-
   async function handleJoinTeam() {
     if (!joinCode.trim()) return;
     setLoading(true);
@@ -94,8 +72,6 @@ export default function TeamsPage() {
         setJoinCode("");
         setAlertMessage("Sucesso! Você entrou na equipe.");
         loadTeams();
-      } else {
-        setAlertMessage("Você já faz parte desta unidade.");
       }
     } finally {
       setLoading(false);
@@ -119,7 +95,10 @@ export default function TeamsPage() {
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
           <div className="max-w-3xl">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="inline-flex items-center gap-2 px-4 py-1 mb-2 border border-amber-500/30 rounded-full bg-amber-500/10 backdrop-blur-sm text-amber-400 text-[10px] font-bold tracking-[0.2em] uppercase">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-1 mb-2 border border-amber-500/30 rounded-full bg-amber-500/10 backdrop-blur-sm text-amber-400 text-[10px] font-bold tracking-[0.2em] uppercase"
+            >
               <LayoutGrid size={12} /> Hub de Inteligência Estratégica
             </motion.div>
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 leading-[0.9]">
@@ -130,90 +109,43 @@ export default function TeamsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
-              <input 
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="Código de Acesso"
-                className="w-full bg-neutral-900/50 border border-white/5 rounded-2xl px-6 py-5 text-sm focus:border-amber-500/40 focus:bg-neutral-800/50 outline-none transition-all placeholder:text-neutral-700 text-white font-mono tracking-widest"
-              />
-              <button onClick={handleJoinTeam} className="absolute right-2.5 top-2.5 bottom-2.5 px-6 bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-bold rounded-xl transition-all flex items-center justify-center group shadow-lg shadow-amber-500/10">
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
+          <div className="relative w-full md:w-80">
+            <input 
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="Código de Acesso"
+              className="w-full bg-neutral-900/50 border border-white/5 rounded-2xl px-6 py-5 text-sm focus:border-amber-500 outline-none transition-all text-white font-mono uppercase tracking-widest"
+            />
+            <button onClick={handleJoinTeam} className="absolute right-2.5 top-2.5 bottom-2.5 px-6 bg-amber-500 text-black font-bold rounded-xl hover:bg-amber-400 transition-all">
+              <ArrowRight size={20} />
+            </button>
           </div>
         </header>
 
-        {alertMessage && (
-          <AnimatePresence>
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-10 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium flex items-center justify-between">
-               <div className="flex items-center gap-3"><ShieldCheck size={20} /> {alertMessage}</div>
-               <button onClick={() => setAlertMessage(null)}><XCircle size={18} className="opacity-50 hover:opacity-100" /></button>
-            </motion.div>
-          </AnimatePresence>
-        )}
-
         {loading ? (
-          <div className="h-64 flex items-center justify-center">
-            <div className="w-10 h-10 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-          </div>
+          <div className="h-64 flex items-center justify-center"><Loader2 className="animate-spin text-amber-500" size={32} /></div>
         ) : (
-          <div className="space-y-28">
+          <div className="space-y-20">
             <section>
-              <div className="flex items-center gap-4 mb-12">
-                <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 flex items-center gap-6 w-full">
-                  <span className="whitespace-nowrap">Liderança e Gestão</span>
-                  <div className="h-[1px] w-full bg-white/[0.05]" />
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-                <motion.div
-                  whileHover={{ y: -8 }}
-                  onClick={() => router.push("/teams/create")}
-                  className="cursor-pointer group relative h-[280px] rounded-[40px] border border-dashed border-white/[0.1] hover:border-amber-500/40 transition-all flex flex-col items-center justify-center gap-6 overflow-hidden bg-neutral-900/20 backdrop-blur-sm"
-                >
-                  <div className="w-20 h-20 rounded-3xl bg-neutral-800/50 border border-white/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-amber-500/30 transition-all duration-500">
-                    <Plus size={32} className="text-amber-500" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-white/80 font-bold text-base uppercase tracking-widest group-hover:text-white transition-colors">Nova Equipe</p>
-                    <p className="text-gray-600 text-[11px] uppercase mt-2 tracking-widest font-medium">Expandir Organização</p>
-                  </div>
-                </motion.div>
-
+              <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 mb-10">Liderança e Gestão</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <div onClick={() => router.push("/teams/create")} className="cursor-pointer group h-[280px] rounded-[40px] border border-dashed border-white/10 hover:border-amber-500/40 transition-all flex flex-col items-center justify-center gap-4 bg-neutral-900/20">
+                  <Plus size={32} className="text-amber-500" />
+                  <p className="text-white/80 font-bold uppercase tracking-widest">Nova Equipe</p>
+                </div>
                 {managerTeams.map((team) => (
-                  <TeamCard 
-                    key={team.id} 
-                    team={team} 
-                    isOwner={true} 
-                    onClick={() => router.push(`/teams/${team.id}`)}
-                    onRename={(e: any) => handleRenameTeam(e, team)}
-                    onDelete={(e: any) => handleDeleteTeam(e, team)}
-                  />
+                  <TeamCard key={team.id} team={team} isOwner={true} onClick={() => router.push(`/teams/${team.id}`)} />
                 ))}
               </div>
             </section>
 
             <section>
-              <div className="flex items-center gap-4 mb-12">
-                <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 flex items-center gap-6 w-full">
-                  <span className="whitespace-nowrap">Participação Colaborativa</span>
-                  <div className="h-[1px] w-full bg-white/[0.05]" />
-                </h2>
+              <h2 className="text-xs font-black uppercase tracking-[0.5em] text-white/40 mb-10">Participação Colaborativa</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {memberTeams.map((team) => (
+                  <TeamCard key={team.id} team={team} isOwner={false} onClick={() => router.push(`/teams/${team.id}`)} />
+                ))}
               </div>
-              {memberTeams.length === 0 ? (
-                <div className="p-20 rounded-[50px] border border-white/[0.03] bg-neutral-900/10 text-center backdrop-blur-sm">
-                  <p className="text-gray-600 font-medium tracking-widest text-sm uppercase">Nenhuma participação colaborativa detectada</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-                  {memberTeams.map((team) => (
-                    <TeamCard key={team.id} team={team} isOwner={false} onClick={() => router.push(`/teams/${team.id}`)} />
-                  ))}
-                </div>
-              )}
             </section>
           </div>
         )}
@@ -222,53 +154,23 @@ export default function TeamsPage() {
   );
 }
 
-function TeamCard({ team, isOwner, onClick, onRename, onDelete }: any) {
+function TeamCard({ team, isOwner, onClick }: any) {
   return (
     <motion.div
-      whileHover={{ y: -10 }}
+      whileHover={{ y: -8 }}
       onClick={onClick}
-      className="relative group cursor-pointer h-[280px] rounded-[45px] bg-neutral-900/40 backdrop-blur-xl border border-white/5 p-10 flex flex-col justify-between overflow-hidden hover:border-amber-500/30 transition-all duration-500 shadow-2xl"
+      className="relative cursor-pointer h-[280px] rounded-[45px] bg-neutral-900/40 border border-white/5 p-10 flex flex-col justify-between hover:border-amber-500/30 transition-all shadow-2xl overflow-hidden"
     >
-      <div className={`absolute top-0 right-0 w-48 h-48 blur-[100px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 ${isOwner ? 'bg-amber-500' : 'bg-blue-500'}`} />
-      
-      <div className="relative z-10">
-        <div className="flex justify-between items-start mb-8">
-          <div className={`p-4 rounded-2xl ${isOwner ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-400'} border border-white/[0.03]`}>
-            {isOwner ? <UserCog size={26} /> : <Users size={26} />}
-          </div>
-          
-          {/* CONTROLES ADMINISTRATIVOS */}
-          <div className="flex items-center gap-2">
-            {isOwner && (
-              <div className="flex gap-1 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button onClick={onRename} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Edit3 size={14} /></button>
-                 <button onClick={onDelete} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500/60 hover:text-red-500 transition-all"><Trash2 size={14} /></button>
-              </div>
-            )}
-            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/40 border border-white/5">
-              <KeyRound size={14} className="text-neutral-600" />
-              <span className="font-mono text-[11px] font-bold text-neutral-500 uppercase tracking-widest">{team.code}</span>
-            </div>
-          </div>
+      <div className="flex justify-between items-start">
+        <div className={`p-4 rounded-2xl ${isOwner ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-400'}`}>
+          {isOwner ? <UserCog size={26} /> : <Users size={26} />}
         </div>
-        <h3 className="text-3xl font-bold text-white group-hover:text-amber-400 transition-colors leading-tight truncate tracking-tighter">
-          {team.name}
-        </h3>
+        <div className="px-4 py-2 rounded-full bg-black/40 border border-white/5 text-[10px] font-mono font-bold text-neutral-500 tracking-widest uppercase">{team.code}</div>
       </div>
-
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="space-y-2">
-          <p className="text-[10px] uppercase font-black tracking-[0.3em] text-neutral-600">Cargo Estratégico</p>
-          <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${isOwner ? 'bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'bg-blue-500'}`} />
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-[0.2em]">
-              {isOwner ? 'Diretor' : 'Estrategista'}
-            </span>
-          </div>
-        </div>
-        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-4 transition-all duration-500">
-          <ArrowRight size={24} className="text-amber-500" />
-        </div>
+      <h3 className="text-3xl font-bold text-white tracking-tighter truncate">{team.name}</h3>
+      <div className="flex items-center gap-3">
+        <div className={`w-2 h-2 rounded-full ${isOwner ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-blue-500'}`} />
+        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{isOwner ? 'Diretor' : 'Estrategista'}</span>
       </div>
     </motion.div>
   );
